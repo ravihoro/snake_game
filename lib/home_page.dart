@@ -2,6 +2,7 @@ import 'dart:async';
 import './ticker.dart';
 import 'package:flutter/material.dart';
 import 'dart:math';
+import 'dart:collection';
 
 enum Direction { up, down, left, right }
 
@@ -11,16 +12,22 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  String currentDirection = "";
-  int initialPosition;
   Random random;
   StreamSubscription tickerSubscription;
   Ticker ticker;
   Direction direction;
+  Queue<int> snakePosition;
+
+  @override
+  void dispose() {
+    tickerSubscription.cancel();
+    super.dispose();
+  }
 
   @override
   void initState() {
     super.initState();
+    snakePosition = Queue();
     direction = Direction.right;
     ticker = Ticker();
     tickerSubscription = ticker.tick().listen((val) {
@@ -33,45 +40,55 @@ class _HomePageState extends State<HomePage> {
       } else {
         down();
       }
+      snakePosition.removeLast();
     });
     random = Random();
-    initialPosition = random.nextInt(139);
+    snakePosition.add(random.nextInt(139));
   }
 
   left() {
     setState(() {
-      if (initialPosition % 10 == 0) {
-        initialPosition += 9;
+      if (snakePosition.first % 10 == 0) {
+        snakePosition.addFirst(snakePosition.first + 9);
       } else {
-        initialPosition--;
+        snakePosition.addFirst(snakePosition.first - 1);
       }
     });
   }
 
   right() {
     setState(() {
-      initialPosition += 1;
-      if (initialPosition % 10 == 0) {
-        initialPosition -= 10;
+      if (snakePosition.first % 10 == 9) {
+        snakePosition.addFirst(snakePosition.first - 9);
+      } else {
+        snakePosition.addFirst(snakePosition.first + 1);
       }
     });
   }
 
   up() {
     setState(() {
-      initialPosition -= 10;
-      if (initialPosition < 0) {
-        initialPosition += 140;
+      if (snakePosition.first - 10 < 0) {
+        snakePosition.addFirst(snakePosition.first - 10 + 140);
+      } else {
+        snakePosition.addFirst(snakePosition.first - 10);
       }
     });
   }
 
   down() {
     setState(() {
-      initialPosition += 10;
-      if (initialPosition >= 140) {
-        initialPosition -= 140;
+      if (snakePosition.first + 10 >= 140) {
+        snakePosition.addFirst(snakePosition.first + 10 - 140);
+      } else {
+        snakePosition.addFirst(snakePosition.first + 10);
       }
+    });
+  }
+
+  addTail() {
+    setState(() {
+      snakePosition.add(snakePosition.last);
     });
   }
 
@@ -88,7 +105,7 @@ class _HomePageState extends State<HomePage> {
           Expanded(
             child: Container(
               padding: const EdgeInsets.symmetric(vertical: 13),
-              color: Colors.grey,
+              color: Colors.black,
               child: GridView.builder(
                 itemCount: 140,
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -99,9 +116,9 @@ class _HomePageState extends State<HomePage> {
                 itemBuilder: (context, index) {
                   return Container(
                     decoration: BoxDecoration(
-                      color: index == initialPosition
+                      color: snakePosition.contains(index)
                           ? Colors.yellow
-                          : Colors.white,
+                          : Colors.grey[800],
                       border: Border.all(
                         width: 1.0,
                         color: Colors.black,
@@ -158,6 +175,12 @@ class _HomePageState extends State<HomePage> {
             height: 10.0,
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        child: Icon(Icons.add),
+        onPressed: () {
+          addTail();
+        },
       ),
     );
   }
