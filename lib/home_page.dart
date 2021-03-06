@@ -17,6 +17,7 @@ class _HomePageState extends State<HomePage> {
   Ticker ticker;
   Direction direction;
   Queue<int> snakePosition;
+  int food;
 
   @override
   void dispose() {
@@ -40,10 +41,15 @@ class _HomePageState extends State<HomePage> {
       } else {
         down();
       }
+      if (snakePosition.first == food) {
+        addTail();
+        newFood();
+      }
       snakePosition.removeLast();
     });
     random = Random();
     snakePosition.add(random.nextInt(139));
+    food = random.nextInt(139);
   }
 
   left() {
@@ -86,6 +92,14 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  newFood() {
+    setState(() {
+      do {
+        food = random.nextInt(139);
+      } while (snakePosition.contains(food));
+    });
+  }
+
   addTail() {
     setState(() {
       snakePosition.add(snakePosition.last);
@@ -118,7 +132,9 @@ class _HomePageState extends State<HomePage> {
                     decoration: BoxDecoration(
                       color: snakePosition.contains(index)
                           ? Colors.yellow
-                          : Colors.grey[800],
+                          : food == index
+                              ? Colors.green
+                              : Colors.grey[800],
                       border: Border.all(
                         width: 1.0,
                         color: Colors.black,
