@@ -1,4 +1,9 @@
+import 'dart:async';
+import './ticker.dart';
 import 'package:flutter/material.dart';
+import 'dart:math';
+
+enum Direction { up, down, left, right }
 
 class HomePage extends StatefulWidget {
   @override
@@ -7,11 +12,67 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   String currentDirection = "";
-  int initialPosition = 0;
+  int initialPosition;
+  Random random;
+  StreamSubscription tickerSubscription;
+  Ticker ticker;
+  Direction direction;
 
   @override
   void initState() {
     super.initState();
+    direction = Direction.right;
+    ticker = Ticker();
+    tickerSubscription = ticker.tick().listen((val) {
+      if (direction == Direction.left) {
+        left();
+      } else if (direction == Direction.right) {
+        right();
+      } else if (direction == Direction.up) {
+        up();
+      } else {
+        down();
+      }
+    });
+    random = Random();
+    initialPosition = random.nextInt(139);
+  }
+
+  left() {
+    setState(() {
+      if (initialPosition % 10 == 0) {
+        initialPosition += 9;
+      } else {
+        initialPosition--;
+      }
+    });
+  }
+
+  right() {
+    setState(() {
+      initialPosition += 1;
+      if (initialPosition % 10 == 0) {
+        initialPosition -= 10;
+      }
+    });
+  }
+
+  up() {
+    setState(() {
+      initialPosition -= 10;
+      if (initialPosition < 0) {
+        initialPosition += 140;
+      }
+    });
+  }
+
+  down() {
+    setState(() {
+      initialPosition += 10;
+      if (initialPosition >= 140) {
+        initialPosition -= 140;
+      }
+    });
   }
 
   @override
@@ -58,10 +119,7 @@ class _HomePageState extends State<HomePage> {
             icon: Icon(Icons.arrow_circle_up),
             onPressed: () {
               setState(() {
-                initialPosition -= 10;
-                if (initialPosition < 0) {
-                  initialPosition += 140;
-                }
+                if (direction != Direction.down) direction = Direction.up;
               });
             },
           ),
@@ -72,11 +130,8 @@ class _HomePageState extends State<HomePage> {
                 icon: Icon(Icons.arrow_left_rounded),
                 onPressed: () {
                   setState(() {
-                    if (initialPosition % 10 == 0) {
-                      initialPosition += 9;
-                    } else {
-                      initialPosition--;
-                    }
+                    if (direction != Direction.right)
+                      direction = Direction.left;
                   });
                 },
               ),
@@ -84,10 +139,8 @@ class _HomePageState extends State<HomePage> {
                 icon: Icon(Icons.arrow_right_rounded),
                 onPressed: () {
                   setState(() {
-                    initialPosition += 1;
-                    if (initialPosition % 10 == 0) {
-                      initialPosition -= 10;
-                    }
+                    if (direction != Direction.left)
+                      direction = Direction.right;
                   });
                 },
               ),
@@ -97,10 +150,7 @@ class _HomePageState extends State<HomePage> {
             icon: Icon(Icons.arrow_circle_down),
             onPressed: () {
               setState(() {
-                initialPosition += 10;
-                if (initialPosition >= 140) {
-                  initialPosition -= 140;
-                }
+                if (direction != Direction.up) direction = Direction.down;
               });
             },
           ),
