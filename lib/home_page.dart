@@ -48,14 +48,14 @@ class _HomePageState extends State<HomePage> {
       snakePosition.removeLast();
     });
     random = Random();
-    snakePosition.add(random.nextInt(139));
-    food = random.nextInt(139);
+    snakePosition.add(random.nextInt(279));
+    food = random.nextInt(279);
   }
 
   left() {
     setState(() {
-      if (snakePosition.first % 10 == 0) {
-        snakePosition.addFirst(snakePosition.first + 9);
+      if (snakePosition.first % 20 == 0) {
+        snakePosition.addFirst(snakePosition.first + 19);
       } else {
         snakePosition.addFirst(snakePosition.first - 1);
       }
@@ -64,8 +64,8 @@ class _HomePageState extends State<HomePage> {
 
   right() {
     setState(() {
-      if (snakePosition.first % 10 == 9) {
-        snakePosition.addFirst(snakePosition.first - 9);
+      if (snakePosition.first % 20 == 19) {
+        snakePosition.addFirst(snakePosition.first - 19);
       } else {
         snakePosition.addFirst(snakePosition.first + 1);
       }
@@ -74,20 +74,20 @@ class _HomePageState extends State<HomePage> {
 
   up() {
     setState(() {
-      if (snakePosition.first - 10 < 0) {
-        snakePosition.addFirst(snakePosition.first - 10 + 140);
+      if (snakePosition.first - 20 < 0) {
+        snakePosition.addFirst(snakePosition.first - 20 + 560);
       } else {
-        snakePosition.addFirst(snakePosition.first - 10);
+        snakePosition.addFirst(snakePosition.first - 20);
       }
     });
   }
 
   down() {
     setState(() {
-      if (snakePosition.first + 10 >= 140) {
-        snakePosition.addFirst(snakePosition.first + 10 - 140);
+      if (snakePosition.first + 20 >= 560) {
+        snakePosition.addFirst(snakePosition.first + 20 - 560);
       } else {
-        snakePosition.addFirst(snakePosition.first + 10);
+        snakePosition.addFirst(snakePosition.first + 20);
       }
     });
   }
@@ -95,7 +95,7 @@ class _HomePageState extends State<HomePage> {
   newFood() {
     setState(() {
       do {
-        food = random.nextInt(139);
+        food = random.nextInt(279);
       } while (snakePosition.contains(food));
     });
   }
@@ -121,11 +121,11 @@ class _HomePageState extends State<HomePage> {
               padding: const EdgeInsets.symmetric(vertical: 13),
               color: Colors.black,
               child: GridView.builder(
-                itemCount: 140,
+                itemCount: 560,
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   mainAxisSpacing: 1.0,
                   crossAxisSpacing: 1.0,
-                  crossAxisCount: 10,
+                  crossAxisCount: 20,
                 ),
                 itemBuilder: (context, index) {
                   return Container(
