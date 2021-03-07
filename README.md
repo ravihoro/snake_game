@@ -1,16 +1,17 @@
-# snake_game
+# Snake Game
 
-A new Flutter project.
+Snake game built using Flutter where snake grows by eating food and dies when it collides with its own body.
 
-## Getting Started
+Link to apk: https://drive.google.com/file/d/1vdrQUQythOsMZGSiBvYkdJZa_aUxrBhN/view?usp=sharing
 
-This project is a starting point for a Flutter application.
+## Features
+- Directional buttons for controlling snake
+- Snake grows after eating fruits
+- Snake dies after colliding with itself
+- Haptic feedback when clicking directional buttons
 
-A few resources to get you started if this is your first Flutter project:
+## Tools Used
+- Flutter
 
-- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
-
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Screenshots
+<img src = "screenshots/snake_1.jpg" width = 250> <img src = "screenshots/snake_2.jpg" width = 250> <img src = "screenshots/snake_3.jpg" width = 250> <br> <img src = "screenshots/snake_4.gif" width = 250>
