@@ -19,6 +19,11 @@ class _HomePageState extends State<HomePage> {
     Colors.pink,
     Colors.green,
     Colors.orange,
+    Colors.blue,
+    Colors.purple,
+    Colors.deepPurpleAccent,
+    Colors.white,
+    Colors.lime,
   ];
 
   Random random;
@@ -58,6 +63,13 @@ class _HomePageState extends State<HomePage> {
                   initializeGame();
                 },
               ),
+              RaisedButton(
+                child: Text("Exit Game"),
+                color: Colors.red,
+                onPressed: () {
+                  SystemNavigator.pop();
+                },
+              ),
             ],
           );
         });
@@ -89,7 +101,7 @@ class _HomePageState extends State<HomePage> {
     });
     food = Food(
       index: random.nextInt(559),
-      color: colors[random.nextInt(3)],
+      color: colors[random.nextInt(colors.length - 1)],
     );
   }
 
@@ -116,7 +128,6 @@ class _HomePageState extends State<HomePage> {
   }
 
   right() {
-    print(snakePosition.first);
     setState(() {
       if (snakePosition.first % 20 == 19) {
         if (indexes.contains(snakePosition.first - 19)) {
@@ -187,7 +198,7 @@ class _HomePageState extends State<HomePage> {
       do {
         food = Food(
           index: random.nextInt(559),
-          color: colors[random.nextInt(3)],
+          color: colors[random.nextInt(colors.length - 1)],
         );
       } while (indexes.contains(food.index));
     });
@@ -286,6 +297,14 @@ class _HomePageState extends State<HomePage> {
         title: Text(
           'Snake Game',
         ),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.exit_to_app),
+            onPressed: () {
+              SystemNavigator.pop();
+            },
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -300,12 +319,6 @@ class _HomePageState extends State<HomePage> {
             height: 10.0,
           ),
         ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        child: Icon(Icons.pause),
-        onPressed: () {
-          tickerSubscription.pause();
-        },
       ),
     );
   }
