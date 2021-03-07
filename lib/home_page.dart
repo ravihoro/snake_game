@@ -6,6 +6,7 @@ import 'dart:collection';
 import './model/food.dart';
 import './button.dart';
 import 'direction.dart';
+import 'package:flutter/services.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -40,11 +41,35 @@ class _HomePageState extends State<HomePage> {
     initializeGame();
   }
 
+  _showAlertDialog(BuildContext context) {
+    showDialog(
+        context: context,
+        builder: (_) {
+          return AlertDialog(
+            title: Text("Game Over"),
+            content: Text(
+              'Restart Game',
+            ),
+            actions: [
+              RaisedButton(
+                child: Text("Restart"),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  initializeGame();
+                },
+              ),
+            ],
+          );
+        });
+  }
+
   initializeGame() {
+    ticker = Ticker();
+    random = Random();
     indexes = Set();
     snakePosition = Queue();
     direction = Direction.right;
-    ticker = Ticker();
+    snakePosition.add(random.nextInt(559));
     tickerSubscription = ticker.tick().listen((val) {
       if (direction == Direction.left) {
         left();
@@ -62,10 +87,8 @@ class _HomePageState extends State<HomePage> {
       int index = snakePosition.removeLast();
       indexes.remove(index);
     });
-    random = Random();
-    snakePosition.add(random.nextInt(279));
     food = Food(
-      index: random.nextInt(279),
+      index: random.nextInt(559),
       color: colors[random.nextInt(3)],
     );
   }
@@ -73,23 +96,44 @@ class _HomePageState extends State<HomePage> {
   left() {
     setState(() {
       if (snakePosition.first % 20 == 0) {
-        snakePosition.addFirst(snakePosition.first + 19);
-        indexes.add(snakePosition.first + 19);
+        if (indexes.contains(snakePosition.first + 19)) {
+          tickerSubscription.pause();
+          _showAlertDialog(context);
+        } else {
+          snakePosition.addFirst(snakePosition.first + 19);
+          indexes.add(snakePosition.first);
+        }
       } else {
-        snakePosition.addFirst(snakePosition.first - 1);
-        indexes.add(snakePosition.first - 1);
+        if (indexes.contains(snakePosition.first - 1)) {
+          tickerSubscription.pause();
+          _showAlertDialog(context);
+        } else {
+          snakePosition.addFirst(snakePosition.first - 1);
+          indexes.add(snakePosition.first);
+        }
       }
     });
   }
 
   right() {
+    print(snakePosition.first);
     setState(() {
       if (snakePosition.first % 20 == 19) {
-        snakePosition.addFirst(snakePosition.first - 19);
-        indexes.add(snakePosition.first - 19);
+        if (indexes.contains(snakePosition.first - 19)) {
+          tickerSubscription.pause();
+          _showAlertDialog(context);
+        } else {
+          snakePosition.addFirst(snakePosition.first - 19);
+          indexes.add(snakePosition.first);
+        }
       } else {
-        snakePosition.addFirst(snakePosition.first + 1);
-        indexes.add(snakePosition.first + 1);
+        if (indexes.contains(snakePosition.first + 1)) {
+          tickerSubscription.pause();
+          _showAlertDialog(context);
+        } else {
+          snakePosition.addFirst(snakePosition.first + 1);
+          indexes.add(snakePosition.first);
+        }
       }
     });
   }
@@ -97,11 +141,21 @@ class _HomePageState extends State<HomePage> {
   up() {
     setState(() {
       if (snakePosition.first - 20 < 0) {
-        snakePosition.addFirst(snakePosition.first - 20 + 560);
-        indexes.add(snakePosition.first - 20 + 560);
+        if (indexes.contains(snakePosition.first - 20 + 560)) {
+          tickerSubscription.pause();
+          _showAlertDialog(context);
+        } else {
+          snakePosition.addFirst(snakePosition.first - 20 + 560);
+          indexes.add(snakePosition.first);
+        }
       } else {
-        snakePosition.addFirst(snakePosition.first - 20);
-        indexes.add(snakePosition.first - 20);
+        if (indexes.contains(snakePosition.first - 20)) {
+          tickerSubscription.pause();
+          _showAlertDialog(context);
+        } else {
+          snakePosition.addFirst(snakePosition.first - 20);
+          indexes.add(snakePosition.first);
+        }
       }
     });
   }
@@ -109,11 +163,21 @@ class _HomePageState extends State<HomePage> {
   down() {
     setState(() {
       if (snakePosition.first + 20 >= 560) {
-        snakePosition.addFirst(snakePosition.first + 20 - 560);
-        indexes.add(snakePosition.first + 20 - 560);
+        if (indexes.contains(snakePosition.first + 20 - 560)) {
+          tickerSubscription.pause();
+          _showAlertDialog(context);
+        } else {
+          snakePosition.addFirst(snakePosition.first + 20 - 560);
+          indexes.add(snakePosition.first);
+        }
       } else {
-        snakePosition.addFirst(snakePosition.first + 20);
-        indexes.add(snakePosition.first + 20);
+        if (indexes.contains(snakePosition.first + 20)) {
+          tickerSubscription.pause();
+          _showAlertDialog(context);
+        } else {
+          snakePosition.addFirst(snakePosition.first + 20);
+          indexes.add(snakePosition.first);
+        }
       }
     });
   }
@@ -122,7 +186,7 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       do {
         food = Food(
-          index: random.nextInt(279),
+          index: random.nextInt(559),
           color: colors[random.nextInt(3)],
         );
       } while (indexes.contains(food.index));
@@ -136,6 +200,85 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  Widget _buttons() {
+    return Column(
+      children: [
+        Button(
+          direction: Direction.up,
+          onTap: () {
+            HapticFeedback.heavyImpact();
+            setState(() {
+              if (direction != Direction.down) direction = Direction.up;
+            });
+          },
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            Button(
+              direction: Direction.left,
+              onTap: () {
+                HapticFeedback.heavyImpact();
+                setState(() {
+                  if (direction != Direction.right) direction = Direction.left;
+                });
+              },
+            ),
+            Button(
+              direction: Direction.right,
+              onTap: () {
+                HapticFeedback.heavyImpact();
+                setState(() {
+                  if (direction != Direction.left) direction = Direction.right;
+                });
+              },
+            ),
+          ],
+        ),
+        Button(
+          direction: Direction.down,
+          onTap: () {
+            HapticFeedback.heavyImpact();
+            setState(() {
+              if (direction != Direction.up) direction = Direction.down;
+            });
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _grid() {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 13),
+      color: Colors.black,
+      child: GridView.builder(
+        itemCount: 560,
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          mainAxisSpacing: 1.0,
+          crossAxisSpacing: 1.0,
+          crossAxisCount: 20,
+        ),
+        itemBuilder: (context, index) {
+          return Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(5),
+              color: snakePosition.contains(index)
+                  ? Colors.yellow
+                  : food.index == index
+                      ? food.color
+                      : Colors.grey[800],
+              border: Border.all(
+                width: 1.0,
+                color: Colors.black,
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -147,81 +290,22 @@ class _HomePageState extends State<HomePage> {
       body: Column(
         children: [
           Expanded(
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 13),
-              color: Colors.black,
-              child: GridView.builder(
-                itemCount: 560,
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  mainAxisSpacing: 1.0,
-                  crossAxisSpacing: 1.0,
-                  crossAxisCount: 20,
-                ),
-                itemBuilder: (context, index) {
-                  return Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(5),
-                      color: snakePosition.contains(index)
-                          ? Colors.yellow
-                          : food.index == index
-                              ? food.color
-                              : Colors.grey[800],
-                      border: Border.all(
-                        width: 1.0,
-                        color: Colors.black,
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
+            child: _grid(),
           ),
           SizedBox(
             height: 10.0,
           ),
-          Button(
-            direction: Direction.up,
-            onTap: () {
-              setState(() {
-                if (direction != Direction.down) direction = Direction.up;
-              });
-            },
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              Button(
-                direction: Direction.left,
-                onTap: () {
-                  setState(() {
-                    if (direction != Direction.right)
-                      direction = Direction.left;
-                  });
-                },
-              ),
-              Button(
-                direction: Direction.right,
-                onTap: () {
-                  setState(() {
-                    if (direction != Direction.left)
-                      direction = Direction.right;
-                  });
-                },
-              ),
-            ],
-          ),
-          Button(
-            direction: Direction.down,
-            onTap: () {
-              setState(() {
-                if (direction != Direction.up) direction = Direction.down;
-              });
-            },
-          ),
+          _buttons(),
           SizedBox(
             height: 10.0,
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        child: Icon(Icons.pause),
+        onPressed: () {
+          tickerSubscription.pause();
+        },
       ),
     );
   }
