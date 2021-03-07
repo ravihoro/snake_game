@@ -3,8 +3,9 @@ import './ticker.dart';
 import 'package:flutter/material.dart';
 import 'dart:math';
 import 'dart:collection';
-
-enum Direction { up, down, left, right }
+import './model/food.dart';
+import './button.dart';
+import 'direction.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -12,12 +13,20 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  List<Color> colors = [
+    Colors.red,
+    Colors.pink,
+    Colors.green,
+    Colors.orange,
+  ];
+
   Random random;
   StreamSubscription tickerSubscription;
   Ticker ticker;
   Direction direction;
   Queue<int> snakePosition;
-  int food;
+  Set<int> indexes;
+  Food food;
 
   @override
   void dispose() {
@@ -28,6 +37,11 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
+    initializeGame();
+  }
+
+  initializeGame() {
+    indexes = Set();
     snakePosition = Queue();
     direction = Direction.right;
     ticker = Ticker();
@@ -41,23 +55,29 @@ class _HomePageState extends State<HomePage> {
       } else {
         down();
       }
-      if (snakePosition.first == food) {
+      if (snakePosition.first == food.index) {
         addTail();
         newFood();
       }
-      snakePosition.removeLast();
+      int index = snakePosition.removeLast();
+      indexes.remove(index);
     });
     random = Random();
     snakePosition.add(random.nextInt(279));
-    food = random.nextInt(279);
+    food = Food(
+      index: random.nextInt(279),
+      color: colors[random.nextInt(3)],
+    );
   }
 
   left() {
     setState(() {
       if (snakePosition.first % 20 == 0) {
         snakePosition.addFirst(snakePosition.first + 19);
+        indexes.add(snakePosition.first + 19);
       } else {
         snakePosition.addFirst(snakePosition.first - 1);
+        indexes.add(snakePosition.first - 1);
       }
     });
   }
@@ -66,8 +86,10 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       if (snakePosition.first % 20 == 19) {
         snakePosition.addFirst(snakePosition.first - 19);
+        indexes.add(snakePosition.first - 19);
       } else {
         snakePosition.addFirst(snakePosition.first + 1);
+        indexes.add(snakePosition.first + 1);
       }
     });
   }
@@ -76,8 +98,10 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       if (snakePosition.first - 20 < 0) {
         snakePosition.addFirst(snakePosition.first - 20 + 560);
+        indexes.add(snakePosition.first - 20 + 560);
       } else {
         snakePosition.addFirst(snakePosition.first - 20);
+        indexes.add(snakePosition.first - 20);
       }
     });
   }
@@ -86,8 +110,10 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       if (snakePosition.first + 20 >= 560) {
         snakePosition.addFirst(snakePosition.first + 20 - 560);
+        indexes.add(snakePosition.first + 20 - 560);
       } else {
         snakePosition.addFirst(snakePosition.first + 20);
+        indexes.add(snakePosition.first + 20);
       }
     });
   }
@@ -95,14 +121,18 @@ class _HomePageState extends State<HomePage> {
   newFood() {
     setState(() {
       do {
-        food = random.nextInt(279);
-      } while (snakePosition.contains(food));
+        food = Food(
+          index: random.nextInt(279),
+          color: colors[random.nextInt(3)],
+        );
+      } while (indexes.contains(food.index));
     });
   }
 
   addTail() {
     setState(() {
       snakePosition.add(snakePosition.last);
+      indexes.add(snakePosition.last);
     });
   }
 
@@ -130,10 +160,11 @@ class _HomePageState extends State<HomePage> {
                 itemBuilder: (context, index) {
                   return Container(
                     decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(5),
                       color: snakePosition.contains(index)
                           ? Colors.yellow
-                          : food == index
-                              ? Colors.green
+                          : food.index == index
+                              ? food.color
                               : Colors.grey[800],
                       border: Border.all(
                         width: 1.0,
@@ -148,9 +179,9 @@ class _HomePageState extends State<HomePage> {
           SizedBox(
             height: 10.0,
           ),
-          IconButton(
-            icon: Icon(Icons.arrow_circle_up),
-            onPressed: () {
+          Button(
+            direction: Direction.up,
+            onTap: () {
               setState(() {
                 if (direction != Direction.down) direction = Direction.up;
               });
@@ -159,18 +190,18 @@ class _HomePageState extends State<HomePage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              IconButton(
-                icon: Icon(Icons.arrow_left_rounded),
-                onPressed: () {
+              Button(
+                direction: Direction.left,
+                onTap: () {
                   setState(() {
                     if (direction != Direction.right)
                       direction = Direction.left;
                   });
                 },
               ),
-              IconButton(
-                icon: Icon(Icons.arrow_right_rounded),
-                onPressed: () {
+              Button(
+                direction: Direction.right,
+                onTap: () {
                   setState(() {
                     if (direction != Direction.left)
                       direction = Direction.right;
@@ -179,9 +210,9 @@ class _HomePageState extends State<HomePage> {
               ),
             ],
           ),
-          IconButton(
-            icon: Icon(Icons.arrow_circle_down),
-            onPressed: () {
+          Button(
+            direction: Direction.down,
+            onTap: () {
               setState(() {
                 if (direction != Direction.up) direction = Direction.down;
               });
@@ -191,12 +222,6 @@ class _HomePageState extends State<HomePage> {
             height: 10.0,
           ),
         ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        child: Icon(Icons.add),
-        onPressed: () {
-          addTail();
-        },
       ),
     );
   }
