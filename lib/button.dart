@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'direction.dart';
 
 class Button extends StatelessWidget {
-  final Function onTap;
+  final Function() onTap;
   final Direction direction;
   final IconData icon;
 
   Button({
-    this.onTap,
-    this.direction,
+    required this.onTap,
+    required this.direction,
   }) : icon = direction == Direction.up
             ? Icons.keyboard_arrow_up
             : direction == Direction.down
@@ -32,7 +33,10 @@ class Button extends StatelessWidget {
           size: 45,
         ),
       ),
-      onTap: onTap,
+      onTap: () {
+        HapticFeedback.heavyImpact();
+        onTap();
+      },
     );
   }
 }

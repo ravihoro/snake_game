@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'package:snake_game/grid.dart';
+import 'package:snake_game/helper_functions.dart';
 import './ticker.dart';
 import 'package:flutter/material.dart';
 import 'dart:math';
@@ -14,29 +16,30 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  List<Color> colors = [
-    Colors.red,
-    Colors.pink,
-    Colors.green,
-    Colors.orange,
-    Colors.blue,
-    Colors.purple,
-    Colors.deepPurpleAccent,
-    Colors.white,
-    Colors.lime,
-  ];
+  late Random random;
+  late Ticker ticker;
+  late Direction direction;
+  late Queue<int> snakePosition;
+  late Set<int> indexes;
+  late Food food;
 
-  Random random;
-  StreamSubscription tickerSubscription;
-  Ticker ticker;
-  Direction direction;
-  Queue<int> snakePosition;
-  Set<int> indexes;
-  Food food;
+  late StreamController<Direction> controller;
+  late Timer timer;
+  late StreamSubscription<Direction> stream;
+
+  int side = 12;
+  late int totalGrids = side * side;
+
+  late List<List<Direction>> directionGrid = getGrid(side);
+
+  int durationMilliseconds = 250;
+
+  int points = 0;
 
   @override
   void dispose() {
-    tickerSubscription.cancel();
+    timer.cancel();
+    stream.cancel();
     super.dispose();
   }
 
@@ -46,169 +49,209 @@ class _HomePageState extends State<HomePage> {
     initializeGame();
   }
 
-  _showAlertDialog(BuildContext context) {
-    showDialog(
-        context: context,
-        builder: (_) {
-          return AlertDialog(
-            title: Text("Game Over"),
-            content: Text(
-              'Restart Game',
-            ),
-            actions: [
-              RaisedButton(
-                child: Text("Restart"),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  initializeGame();
-                },
-              ),
-              RaisedButton(
-                child: Text("Exit Game"),
-                color: Colors.red,
-                onPressed: () {
-                  SystemNavigator.pop();
-                },
-              ),
-            ],
-          );
-        });
-  }
-
-  initializeGame() {
+  void initializeGame() {
+    points = 0;
     ticker = Ticker();
     random = Random();
     indexes = Set();
     snakePosition = Queue();
     direction = Direction.right;
-    snakePosition.add(random.nextInt(559));
-    tickerSubscription = ticker.tick().listen((val) {
-      if (direction == Direction.left) {
-        left();
-      } else if (direction == Direction.right) {
-        right();
-      } else if (direction == Direction.up) {
-        up();
-      } else {
-        down();
-      }
-      if (snakePosition.first == food.index) {
-        addTail();
-        newFood();
-      }
-      int index = snakePosition.removeLast();
-      indexes.remove(index);
-    });
+    int startPosition = random.nextInt(totalGrids);
+    snakePosition.add(startPosition);
+
+    controller = StreamController<Direction>();
+
+    timer = Timer.periodic(
+      Duration(milliseconds: durationMilliseconds),
+      (timer) {
+        controller.add(direction);
+      },
+    );
+
+    stream = controller.stream.listen(
+      (dir) async {
+        int dirRow = getRow(snakePosition.first, side);
+        int dirCol = getColumn(snakePosition.first, side);
+
+        directionGrid[dirRow][dirCol] = dir;
+
+        if (dir == Direction.left ||
+            dir == Direction.topLeft ||
+            dir == Direction.bottomLeft) {
+          left();
+        } else if (dir == Direction.right ||
+            dir == Direction.topRight ||
+            dir == Direction.bottomRight) {
+          right();
+        } else if (dir == Direction.up ||
+            dir == Direction.leftTop ||
+            dir == Direction.rightTop) {
+          up();
+        } else if (dir == Direction.down ||
+            dir == Direction.leftBottom ||
+            dir == Direction.rightBottom) {
+          down();
+        }
+
+        dirRow = getRow(snakePosition.first, side);
+        dirCol = getColumn(snakePosition.first, side);
+
+        directionGrid[dirRow][dirCol] = dir;
+
+        if (snakePosition.first == food.index) {
+          addTail();
+          newFood();
+        }
+
+        int index = snakePosition.removeLast();
+        indexes.remove(index);
+
+        await Future.delayed(
+          Duration(
+            milliseconds: durationMilliseconds,
+          ),
+        );
+      },
+    );
+
     food = Food(
-      index: random.nextInt(559),
-      color: colors[random.nextInt(colors.length - 1)],
+      index: random.nextInt(totalGrids),
     );
   }
 
-  left() {
-    setState(() {
-      if (snakePosition.first % 20 == 0) {
-        if (indexes.contains(snakePosition.first + 19)) {
-          tickerSubscription.pause();
-          _showAlertDialog(context);
-        } else {
-          snakePosition.addFirst(snakePosition.first + 19);
-          indexes.add(snakePosition.first);
-        }
-      } else {
-        if (indexes.contains(snakePosition.first - 1)) {
-          tickerSubscription.pause();
-          _showAlertDialog(context);
-        } else {
-          snakePosition.addFirst(snakePosition.first - 1);
-          indexes.add(snakePosition.first);
-        }
-      }
-    });
+  void pauseGame() {
+    stream.pause();
+    showAlertDialog(
+      context,
+      () {
+        Navigator.of(context).pop();
+        controller.close();
+        timer.cancel();
+        stream.cancel();
+        initializeGame();
+      },
+      () {
+        SystemNavigator.pop();
+      },
+    );
   }
 
-  right() {
-    setState(() {
-      if (snakePosition.first % 20 == 19) {
-        if (indexes.contains(snakePosition.first - 19)) {
-          tickerSubscription.pause();
-          _showAlertDialog(context);
+  void left() {
+    setState(
+      () {
+        if (snakePosition.first % side == 0) {
+          int nextPos = snakePosition.first + (side - 1);
+          if (indexes.contains(nextPos)) {
+            pauseGame();
+          } else {
+            snakePosition.addFirst(nextPos);
+            indexes.add(snakePosition.first);
+          }
         } else {
-          snakePosition.addFirst(snakePosition.first - 19);
-          indexes.add(snakePosition.first);
+          int nextPos = snakePosition.first - 1;
+          if (indexes.contains(nextPos)) {
+            pauseGame();
+          } else {
+            snakePosition.addFirst(nextPos);
+            indexes.add(snakePosition.first);
+          }
         }
-      } else {
-        if (indexes.contains(snakePosition.first + 1)) {
-          tickerSubscription.pause();
-          _showAlertDialog(context);
-        } else {
-          snakePosition.addFirst(snakePosition.first + 1);
-          indexes.add(snakePosition.first);
-        }
-      }
-    });
+      },
+    );
   }
 
-  up() {
-    setState(() {
-      if (snakePosition.first - 20 < 0) {
-        if (indexes.contains(snakePosition.first - 20 + 560)) {
-          tickerSubscription.pause();
-          _showAlertDialog(context);
+  void right() {
+    setState(
+      () {
+        if (snakePosition.first % side == (side - 1)) {
+          int nextPos = snakePosition.first - (side - 1);
+          if (indexes.contains(nextPos)) {
+            pauseGame();
+          } else {
+            snakePosition.addFirst(nextPos);
+            indexes.add(snakePosition.first);
+          }
         } else {
-          snakePosition.addFirst(snakePosition.first - 20 + 560);
-          indexes.add(snakePosition.first);
+          int nextPos = snakePosition.first + 1;
+          if (indexes.contains(nextPos)) {
+            pauseGame();
+          } else {
+            snakePosition.addFirst(nextPos);
+            indexes.add(snakePosition.first);
+          }
         }
-      } else {
-        if (indexes.contains(snakePosition.first - 20)) {
-          tickerSubscription.pause();
-          _showAlertDialog(context);
-        } else {
-          snakePosition.addFirst(snakePosition.first - 20);
-          indexes.add(snakePosition.first);
-        }
-      }
-    });
+      },
+    );
   }
 
-  down() {
-    setState(() {
-      if (snakePosition.first + 20 >= 560) {
-        if (indexes.contains(snakePosition.first + 20 - 560)) {
-          tickerSubscription.pause();
-          _showAlertDialog(context);
+  void up() {
+    setState(
+      () {
+        if (snakePosition.first - side < 0) {
+          int nextPos = snakePosition.first - side + (totalGrids);
+          if (indexes.contains(nextPos)) {
+            pauseGame();
+          } else {
+            snakePosition.addFirst(nextPos);
+            indexes.add(snakePosition.first);
+          }
         } else {
-          snakePosition.addFirst(snakePosition.first + 20 - 560);
-          indexes.add(snakePosition.first);
+          int nextPos = snakePosition.first - side;
+          if (indexes.contains(nextPos)) {
+            pauseGame();
+          } else {
+            snakePosition.addFirst(nextPos);
+            indexes.add(snakePosition.first);
+          }
         }
-      } else {
-        if (indexes.contains(snakePosition.first + 20)) {
-          tickerSubscription.pause();
-          _showAlertDialog(context);
-        } else {
-          snakePosition.addFirst(snakePosition.first + 20);
-          indexes.add(snakePosition.first);
-        }
-      }
-    });
+      },
+    );
   }
 
-  newFood() {
-    setState(() {
-      do {
-        food = Food(
-          index: random.nextInt(559),
-          color: colors[random.nextInt(colors.length - 1)],
-        );
-      } while (indexes.contains(food.index));
-    });
+  void down() {
+    setState(
+      () {
+        if (snakePosition.first + side >= (totalGrids)) {
+          int nextPos = snakePosition.first + side - (totalGrids);
+          if (indexes.contains(nextPos)) {
+            pauseGame();
+          } else {
+            snakePosition.addFirst(nextPos);
+            indexes.add(snakePosition.first);
+          }
+        } else {
+          int nextPos = snakePosition.first + side;
+          if (indexes.contains(nextPos)) {
+            pauseGame();
+          } else {
+            snakePosition.addFirst(nextPos);
+            indexes.add(snakePosition.first);
+          }
+        }
+      },
+    );
   }
 
-  addTail() {
-    setState(() {
-      snakePosition.add(snakePosition.last);
-      indexes.add(snakePosition.last);
-    });
+  void newFood() {
+    points++;
+    setState(
+      () {
+        do {
+          food = Food(
+            index: random.nextInt(totalGrids),
+          );
+        } while (indexes.contains(food.index));
+      },
+    );
+  }
+
+  void addTail() {
+    setState(
+      () {
+        snakePosition.add(snakePosition.last);
+        indexes.add(snakePosition.last);
+      },
+    );
   }
 
   Widget _buttons() {
@@ -216,11 +259,16 @@ class _HomePageState extends State<HomePage> {
       children: [
         Button(
           direction: Direction.up,
-          onTap: () {
-            HapticFeedback.heavyImpact();
-            setState(() {
-              if (direction != Direction.down) direction = Direction.up;
-            });
+          onTap: () async {
+            if (direction != Direction.down) {
+              if (direction == Direction.left) {
+                controller.add(Direction.leftTop);
+              } else if (direction == Direction.right) {
+                controller.add(Direction.rightTop);
+              }
+
+              direction = Direction.up;
+            }
           },
         ),
         Row(
@@ -228,65 +276,49 @@ class _HomePageState extends State<HomePage> {
           children: [
             Button(
               direction: Direction.left,
-              onTap: () {
-                HapticFeedback.heavyImpact();
-                setState(() {
-                  if (direction != Direction.right) direction = Direction.left;
-                });
+              onTap: () async {
+                if (direction != Direction.right) {
+                  if (direction == Direction.up) {
+                    controller.add(Direction.topLeft);
+                  } else if (direction == Direction.down) {
+                    controller.add(Direction.bottomLeft);
+                  }
+
+                  direction = Direction.left;
+                }
               },
             ),
             Button(
               direction: Direction.right,
-              onTap: () {
-                HapticFeedback.heavyImpact();
-                setState(() {
-                  if (direction != Direction.left) direction = Direction.right;
-                });
+              onTap: () async {
+                if (direction != Direction.left) {
+                  if (direction == Direction.up) {
+                    controller.add(Direction.topRight);
+                  } else if (direction == Direction.down) {
+                    controller.add(Direction.bottomRight);
+                  }
+
+                  direction = Direction.right;
+                }
               },
             ),
           ],
         ),
         Button(
           direction: Direction.down,
-          onTap: () {
-            HapticFeedback.heavyImpact();
-            setState(() {
-              if (direction != Direction.up) direction = Direction.down;
-            });
+          onTap: () async {
+            if (direction != Direction.up) {
+              if (direction == Direction.left) {
+                controller.add(Direction.leftBottom);
+              } else if (direction == Direction.right) {
+                controller.add(Direction.rightBottom);
+              }
+
+              direction = Direction.down;
+            }
           },
         ),
       ],
-    );
-  }
-
-  Widget _grid() {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 13),
-      color: Colors.black,
-      child: GridView.builder(
-        itemCount: 560,
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          mainAxisSpacing: 1.0,
-          crossAxisSpacing: 1.0,
-          crossAxisCount: 20,
-        ),
-        itemBuilder: (context, index) {
-          return Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(5),
-              color: snakePosition.contains(index)
-                  ? Colors.yellow
-                  : food.index == index
-                      ? food.color
-                      : Colors.grey[800],
-              border: Border.all(
-                width: 1.0,
-                color: Colors.black,
-              ),
-            ),
-          );
-        },
-      ),
     );
   }
 
@@ -309,7 +341,13 @@ class _HomePageState extends State<HomePage> {
       body: Column(
         children: [
           Expanded(
-            child: _grid(),
+            child: Grid(
+                side: side,
+                totalGrids: totalGrids,
+                snakePosition: snakePosition,
+                food: food.index,
+                directionGrid: directionGrid,
+                points: points),
           ),
           SizedBox(
             height: 10.0,

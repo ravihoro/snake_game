@@ -7,10 +7,10 @@ class IntroPage extends StatelessWidget {
   final IntroPageAnimation animation;
 
   IntroPage({
-    AnimationController controller,
+    required AnimationController controller,
   }) : animation = IntroPageAnimation(controller);
 
-  Widget _buildAnimation(BuildContext context, Widget child) {
+  Widget _buildAnimation(BuildContext context, Widget? child) {
     return Stack(
       fit: StackFit.expand,
       children: [
@@ -45,7 +45,7 @@ class IntroPage extends StatelessWidget {
           animation.startButton.value,
           1.0,
         ),
-        child: RaisedButton(
+        child: ElevatedButton(
           child: Text('Start'),
           onPressed: () {
             Navigator.of(context).pushReplacement(

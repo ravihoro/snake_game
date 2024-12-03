@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:snake_game/home_page.dart';
 import 'package:snake_game/intro_page.dart';
 
 void main() {
@@ -26,7 +25,7 @@ class IntroScreen extends StatefulWidget {
 
 class _IntroScreenState extends State<IntroScreen>
     with SingleTickerProviderStateMixin {
-  AnimationController controller;
+  late AnimationController controller;
 
   @override
   void initState() {
