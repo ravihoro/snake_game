@@ -75,6 +75,8 @@ class _HomePageState extends State<HomePage> {
 
         directionGrid[dirRow][dirCol] = dir;
 
+        setState(() {});
+
         if (dir == Direction.left ||
             dir == Direction.topLeft ||
             dir == Direction.bottomLeft) {

@@ -28,6 +28,7 @@ void showAlertDialog(
 ) {
   showDialog(
     context: context,
+    barrierDismissible: false,
     builder: (_) {
       return AlertDialog(
         title: Text("Game Over"),
