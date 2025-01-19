@@ -17,4 +17,4 @@ Link to apk: https://drive.google.com/file/d/1vdrQUQythOsMZGSiBvYkdJZa_aUxrBhN/v
 
 ## Screenshots
 
-<img src = "screenshots/snake_1.jpg" width = 250> <img src = "screenshots/snake_2.jpg" width = 250> <img src = "screenshots/snake_3.jpg" width = 250> <br> <img src = "screenshots/snake_4.jpg" width = 250> <br> <img src = "screenshots/snake_5.jpg" width = 250><br> <img src = "screenshots/snake_6.gif" width = 250>
+<img src = "screenshots/snake_1.jpg" width = 250> <img src = "screenshots/snake_2.jpg" width = 250> <img src = "screenshots/snake_3.jpg" width = 250> <br> <img src = "screenshots/snake_4.jpg" width = 250> <img src = "screenshots/snake_5.jpg" width = 250> <img src = "screenshots/snake_6.gif" width = 250>
