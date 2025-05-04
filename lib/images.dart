@@ -14,3 +14,7 @@ const turnBottomRight = "${location}turn_bottom_right.png";
 const turnBottomLeft = "${location}turn_bottom_left.png";
 const bodyHorizontal = "${location}body_horizontal.png";
 const bodyVertical = "${location}body_vertical.png";
+const snakeTop = "${location}snake_top.png";
+const snakeLeft = "${location}snake_left.png";
+const snakeRight = "${location}snake_right.png";
+const snakeBottom = "${location}snake_bottom.png";

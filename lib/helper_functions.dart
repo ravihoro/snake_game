@@ -59,22 +59,23 @@ String getImage(
   int head,
   int tail,
   Direction dir,
+  int length,
 ) {
   if (head == index) {
     if (dir == Direction.up ||
         dir == Direction.leftTop ||
         dir == Direction.rightTop) {
-      return headTop;
+      return length == 1 ? snakeTop : headTop;
     } else if (dir == Direction.down ||
         dir == Direction.leftBottom ||
         dir == Direction.rightBottom) {
-      return headBottom;
+      return length == 1 ? snakeBottom : headBottom;
     } else if (dir == Direction.left ||
         dir == Direction.topLeft ||
         dir == Direction.bottomLeft) {
-      return headLeft;
+      return length == 1 ? snakeLeft : headLeft;
     } else {
-      return headRight;
+      return length == 1 ? snakeRight : headRight;
     }
   } else if (tail == index) {
     switch (dir) {

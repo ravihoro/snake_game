@@ -48,12 +48,14 @@ class Grid extends StatelessWidget {
                             ? DecorationImage(
                                 image: AssetImage(
                                   getImage(
-                                      index,
-                                      side,
-                                      snakePosition.first,
-                                      snakePosition.last,
-                                      directionGrid[getRow(index, side)]
-                                          [getColumn(index, side)]),
+                                    index,
+                                    side,
+                                    snakePosition.first,
+                                    snakePosition.last,
+                                    directionGrid[getRow(index, side)]
+                                        [getColumn(index, side)],
+                                    snakePosition.length,
+                                  ),
                                 ),
                               )
                             : null,
