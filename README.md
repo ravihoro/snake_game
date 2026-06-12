@@ -1,6 +1,8 @@
-# Snake Game
+# Snake Game 
 
 Snake game built using Flutter where snake grows by eating food and dies when it collides with its own body.
+
+[Play Snake Game](https://ravihoro.github.io/snake/) (Flutter and Flame)
 
 ## Features
 
